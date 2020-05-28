@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, Animated, Dimensions} from 'react-native';
+import {StyleSheet, View, Animated, Dimensions, Text} from 'react-native';
 import {SceneView} from 'react-navigation';
 
 import * as d3 from 'd3';
@@ -21,8 +21,7 @@ export const NavigationView = (props) => {
   const state = navigation?.state;
   const routes = state.routes;
 
-  const [driver] = useState(new Animated.Value(0));
-
+  const [svgMorphDriver] = useState(new Animated.Value(0));
   const [modalDriver] = useState(new Animated.Value(0));
 
   const modalOpen = routes.length === 2;
@@ -50,64 +49,25 @@ export const NavigationView = (props) => {
   const circleTotal = circleRadius + circleMargin;
   const centerPoint = windowWidth / 2;
 
-  // const lineData = [
-  //   {
-  //     x: 0,
-  //     y: 80,
-  //   },
-  //   {
-  //     x: 0,
-  //     y: 0,
-  //   },
-  //   {
-  //     x: centerPoint - 80,
-  //     y: 0,
-  //   },
-  //   {
-  //     x: centerPoint - 60,
-  //     y: 8,
-  //   },
-  //   {
-  //     x: centerPoint - 38,
-  //     y: 36,
-  //   },
-  //   {
-  //     x: centerPoint - 13,
-  //     y: circleTotal,
-  //   },
-  //   {
-  //     x: centerPoint + 13,
-  //     y: circleTotal,
-  //   },
-  //   {
-  //     x: centerPoint + 40,
-  //     y: 36,
-  //   },
-  //   {
-  //     x: centerPoint + 60,
-  //     y: 8,
-  //   },
-  //   {
-  //     x: centerPoint + 80,
-  //     y: 0,
-  //   },
-  //   {
-  //     x: windowWidth,
-  //     y: 0,
-  //   },
-  //   {
-  //     x: windowWidth,
-  //     y: 80,
-  //   },
-  // ];
-
-  const lineData2 = [
+  const lineDataUnder = [
     {
       x: 0,
       y: 80,
     },
     {
       x: 0,
+      y: 1,
+    },
+    {
+      x: 0,
+      y: 0,
+    },
+    {
+      x: 1,
+      y: 0,
+    },
+    {
+      x: centerPoint - 80 - 1,
       y: 0,
     },
     {
@@ -115,40 +75,48 @@ export const NavigationView = (props) => {
       y: 0,
     },
     {
-      x: centerPoint - 60,
-      y: 8,
+      x: centerPoint - 57,
+      y: 10,
     },
     {
-      x: centerPoint - 40,
-      y: circleTotal - 20,
+      x: centerPoint - 36,
+      y: circleTotal - 10 + 50,
     },
     {
-      x: centerPoint - 22,
-      y: circleTotal - 4,
+      x: centerPoint - 8,
+      y: circleTotal - 2 + 55,
     },
     {
-      x: centerPoint,
-      y: circleTotal,
+      x: centerPoint + 8,
+      y: circleTotal - 2 + 55,
     },
     {
-      x: centerPoint + 20,
-      y: circleTotal - 4,
+      x: centerPoint + 36,
+      y: circleTotal - 10 + 50,
     },
     {
-      x: centerPoint + 40,
-      y: circleTotal - 20,
-    },
-    {
-      x: centerPoint + 60,
-      y: 8,
+      x: centerPoint + 57,
+      y: 10,
     },
     {
       x: centerPoint + 80,
       y: 0,
     },
     {
+      x: centerPoint + 80 + 5,
+      y: 0,
+    },
+    {
+      x: windowWidth - 1,
+      y: 0,
+    },
+    {
       x: windowWidth,
       y: 0,
+    },
+    {
+      x: windowWidth,
+      y: 1,
     },
     {
       x: windowWidth,
@@ -163,6 +131,18 @@ export const NavigationView = (props) => {
     },
     {
       x: 0,
+      y: 1,
+    },
+    {
+      x: 0,
+      y: 0,
+    },
+    {
+      x: 1,
+      y: 0,
+    },
+    {
+      x: centerPoint - 80 - 1,
       y: 0,
     },
     {
@@ -170,36 +150,48 @@ export const NavigationView = (props) => {
       y: 0,
     },
     {
-      x: centerPoint - 60,
-      y: 8,
+      x: centerPoint - 57,
+      y: 2,
     },
     {
-      x: centerPoint - 31,
+      x: centerPoint - 33,
       y: circleTotal - 10,
     },
     {
-      x: centerPoint - 12,
-      y: circleTotal - 1,
+      x: centerPoint - 9,
+      y: circleTotal - 2,
     },
     {
-      x: centerPoint + 12,
-      y: circleTotal - 1,
+      x: centerPoint + 9,
+      y: circleTotal - 2,
     },
     {
-      x: centerPoint + 31,
+      x: centerPoint + 33,
       y: circleTotal - 10,
     },
     {
-      x: centerPoint + 60,
-      y: 8,
+      x: centerPoint + 57,
+      y: 2,
     },
     {
       x: centerPoint + 80,
       y: 0,
     },
     {
+      x: centerPoint + 80 + 5,
+      y: 0,
+    },
+    {
+      x: windowWidth - 1,
+      y: 0,
+    },
+    {
       x: windowWidth,
       y: 0,
+    },
+    {
+      x: windowWidth,
+      y: 1,
     },
     {
       x: windowWidth,
@@ -214,14 +206,26 @@ export const NavigationView = (props) => {
     },
     {
       x: 0,
+      y: 1,
+    },
+    {
+      x: 0,
       y: 0,
     },
     {
-      x: centerPoint - 80,
+      x: 1,
       y: 0,
     },
     {
-      x: centerPoint - 60,
+      x: centerPoint - 200 - 5,
+      y: 0,
+    },
+    {
+      x: centerPoint - 200,
+      y: 0,
+    },
+    {
+      x: centerPoint - 87,
       y: 0,
     },
     {
@@ -241,16 +245,103 @@ export const NavigationView = (props) => {
       y: 0,
     },
     {
-      x: centerPoint + 60,
+      x: centerPoint + 87,
       y: 0,
     },
     {
-      x: centerPoint + 80,
+      x: centerPoint + 200,
+      y: 0,
+    },
+    {
+      x: centerPoint + 200 + 5,
+      y: 0,
+    },
+    {
+      x: windowWidth - 1,
       y: 0,
     },
     {
       x: windowWidth,
       y: 0,
+    },
+    {
+      x: windowWidth,
+      y: 1,
+    },
+    {
+      x: windowWidth,
+      y: 80,
+    },
+  ];
+
+  const lineDataInverted = [
+    {
+      x: 0,
+      y: 80,
+    },
+    {
+      x: 0,
+      y: 1,
+    },
+    {
+      x: 0,
+      y: 0,
+    },
+    {
+      x: 1,
+      y: 0,
+    },
+    {
+      x: centerPoint - 200 - 1,
+      y: 0,
+    },
+    {
+      x: centerPoint - 200,
+      y: 0,
+    },
+    {
+      x: centerPoint - 87,
+      y: -2,
+    },
+    {
+      x: centerPoint - 24,
+      y: -(circleTotal - 10),
+    },
+    {
+      x: centerPoint - 10,
+      y: -(circleTotal - 1),
+    },
+    {
+      x: centerPoint + 10,
+      y: -(circleTotal - 1),
+    },
+    {
+      x: centerPoint + 24,
+      y: -(circleTotal - 10),
+    },
+    {
+      x: centerPoint + 87,
+      y: -2,
+    },
+    {
+      x: centerPoint + 200,
+      y: 0,
+    },
+    {
+      x: centerPoint + 200 + 5,
+      y: 0,
+    },
+    {
+      x: windowWidth - 1,
+      y: 0,
+    },
+    {
+      x: windowWidth,
+      y: 0,
+    },
+    {
+      x: windowWidth,
+      y: 1,
     },
     {
       x: windowWidth,
@@ -267,34 +358,58 @@ export const NavigationView = (props) => {
     .line()
     .x((d) => scaleX(d.x))
     .y((d) => scaleY(d.y))
-    .curve(d3.curveCatmullRom);
+    .curve(d3.curveBasis);
 
+  const linePathUnder = lineConstructor(lineDataUnder);
   const linePath = lineConstructor(lineData);
   const linePathTop = lineConstructor(lineDataTop);
+  const linePathInverted = lineConstructor(lineDataInverted);
 
-  const lineInterpolate = driver.interpolate({
-    inputRange: [0, 0.35],
-    outputRange: [linePath, linePathTop],
+  const lineInterpolate = svgMorphDriver.interpolate({
+    inputRange: [-0.3, 0, 0.25, 0.7],
+    outputRange: [linePathUnder, linePath, linePathTop, linePathInverted],
   });
 
   const handlePanGesture = (event) => {
-    const state = event.nativeEvent.state;
-    const percent = 1 - event.nativeEvent.absoluteY / 800;
+    const panState = event.nativeEvent.state;
+    const translationY = event.nativeEvent.translationY;
+    const panPercent = -translationY / 800;
 
-    if (state === State.ACTIVE) {
-      driver.setValue(percent);
+    // Gesture is active
+    if (panState === State.ACTIVE) {
+      // Start moving the modal if above 0.3 percent
+      if (panPercent > 0.3) {
+        const modalPercent = (panPercent - 0.3) / 2;
+        modalDriver.setValue(modalPercent);
+      }
+
+      if (!modalOpen) {
+        svgMorphDriver.setValue(panPercent);
+      }
+
+      if (modalOpen) {
+        svgMorphDriver.setValue(panPercent / 6);
+      }
+
+      if (modalOpen && panPercent < -0.3) {
+        const delta = panPercent + 0.3;
+        const modalPercent = 1 + delta / 4;
+        modalDriver.setValue(modalPercent);
+      }
     }
 
-    if (state === State.END) {
-      if (percent > 0.3 && !modalOpen) {
+    // Gesture has ended
+    if (panState === State.END || panState === State.CANCELLED) {
+      if (panPercent > 0.3 && !modalOpen) {
         navigation.navigate('/heart');
       } else {
         navigation.navigate('/tab');
       }
-      Animated.spring(driver, {
+
+      Animated.spring(svgMorphDriver, {
         toValue: 0,
         useNativeDriver: true,
-      }).start(() => {});
+      }).start();
     }
   };
 
@@ -353,24 +468,69 @@ export const NavigationView = (props) => {
           onGestureEvent={handlePanGesture}>
           <View style={styles.modalHeader}>
             <View style={styles.headerSvgContainer}>
-              <Svg
-                height={80}
-                width={windowWidth}
-                viewBox={`0 0 ${windowWidth} 80`}>
-                <AnimatedPath
-                  d={lineInterpolate}
-                  fill="white"
-                  strokeWidth="3"
-                />
-                {/* {lineData.map((point) => (
-                  <Circle
-                    r="3"
-                    cx={scaleX(point.x)}
-                    cy={scaleY(point.y)}
-                    fill="red"
+              <View style={{marginTop: -120}}>
+                <Svg
+                  height={200}
+                  width={windowWidth}
+                  viewBox={`0 -100 ${windowWidth} 180`}>
+                  <AnimatedPath
+                    d={lineInterpolate}
+                    fill="white"
+                    strokeWidth="3"
                   />
-                ))} */}
-              </Svg>
+                  {/* {lineData.map((point) => {
+                    return (
+                      <Circle
+                        r={5}
+                        fill="red"
+                        cx={scaleX(point.x)}
+                        cy={scaleX(point.y)}
+                      />
+                    );
+                  })} */}
+                </Svg>
+              </View>
+
+              <Animated.View
+                style={[
+                  styles.tabContent,
+                  {
+                    opacity: modalDriver.interpolate({
+                      inputRange: [-1, 0, 0.1],
+                      outputRange: [1, 1, 0],
+                    }),
+                  },
+                ]}>
+                <View style={styles.tabLeft}>
+                  <View style={styles.tabItem}>
+                    <View style={styles.tabItemIcon} />
+                    <Text numberOfLines={1} style={styles.tabText}>
+                      Spil
+                    </Text>
+                  </View>
+                  <View style={styles.tabItem}>
+                    <View style={styles.tabItemIcon} />
+                    <Text numberOfLines={1} style={styles.tabText}>
+                      Mine kuponer
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.tabCenter} />
+                <View style={styles.tabRight}>
+                  <View style={styles.tabItem}>
+                    <View style={styles.tabItemIcon} />
+                    <Text numberOfLines={1} style={styles.tabText}>
+                      Vindertal
+                    </Text>
+                  </View>
+                  <View style={styles.tabItem}>
+                    <View style={styles.tabItemIcon} />
+                    <Text numberOfLines={1} style={styles.tabText}>
+                      Scan Kupon
+                    </Text>
+                  </View>
+                </View>
+              </Animated.View>
             </View>
 
             <Animated.View
@@ -379,20 +539,19 @@ export const NavigationView = (props) => {
                 {
                   transform: [
                     {
-                      translateY: driver.interpolate({
+                      translateY: svgMorphDriver.interpolate({
                         inputRange: [0, 1],
                         outputRange: [0, -250],
                       }),
                     },
                     {
-                      scale: driver.interpolate({
+                      scale: svgMorphDriver.interpolate({
                         inputRange: [0, 1],
                         outputRange: [1, 1.5],
                       }),
                     },
                   ],
                 },
-                ,
               ]}>
               <TouchableOpacity
                 style={styles.heartTouchable}
@@ -427,6 +586,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flex: 1,
     backgroundColor: '#213fd9',
+    marginBottom: 16,
   },
   modalContainer: {
     position: 'absolute',
@@ -493,5 +653,44 @@ const styles = StyleSheet.create({
     width: 32,
     borderRadius: 6,
     backgroundColor: '#fcd303',
+  },
+
+  tabContent: {
+    position: 'absolute',
+    flexDirection: 'row',
+    top: 0,
+    right: 0,
+    left: 0,
+    height: 80,
+  },
+
+  tabLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+  },
+  tabCenter: {
+    width: 100,
+  },
+  tabRight: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+  },
+  tabItem: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tabItemIcon: {
+    height: 32,
+    width: 32,
+    borderRadius: 6,
+    backgroundColor: '#ECECEC',
+  },
+  tabText: {
+    color: '#000',
+    fontSize: 10,
+    marginTop: 6,
   },
 });

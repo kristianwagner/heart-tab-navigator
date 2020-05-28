@@ -26,6 +26,10 @@ const TabStackNavigator = createStackNavigator({
   '/tab/stack-2': ({navigation}) => (
     <View style={{flex: 1, backgroundColor: '#3d05b5'}}>
       <Button title="go back" onPress={() => navigation.goBack()} />
+      <Button
+        title="GO DEEP"
+        onPress={() => navigation.navigate('/heart/stack-2')}
+      />
     </View>
   ),
 });
