@@ -49,6 +49,7 @@ type NavigationViewProps = {
     };
     tabKey: string;
     modalKey: string;
+    tabButtonComponent?: () => React.ReactElement;
   };
   screenProps?: unknown;
 } & NavigationInjectedProps;
@@ -590,11 +591,17 @@ export const NavigationView = (props: NavigationViewProps) => {
           onGestureEvent={handlePanGesture}>
           <View style={styles.modalHeader}>
             <View style={styles.headerSvgContainer}>
-              <View style={{marginTop: -120}}>
+              {/*
+                Move svg up with margin top
+                so the svg can invert upwards
+                without being cut off when it goes negative
+                This is also why viewbox Y (second value) is set to the same as margin top to offset it
+              */}
+              <View style={{marginTop: -tabHeight}}>
                 <Svg
-                  height={200}
+                  height={180}
                   width={windowWidth}
-                  viewBox={`0 -100 ${windowWidth} 180`}>
+                  viewBox={`0 -${tabHeight} ${windowWidth} 180`}>
                   <AnimatedPath
                     d={lineInterpolate}
                     fill="white"
@@ -629,7 +636,17 @@ export const NavigationView = (props: NavigationViewProps) => {
                     </View>
                   ))}
                 </View>
-                <View style={styles.tabCenter} />
+                <View
+                  style={[
+                    styles.tabCenter,
+                    // set width dynamically to get space for tab labels on small screens
+                    // Optimized for 4 tabs as this is the most common use case
+                    // eslint-disable-next-line react-native/no-inline-styles
+                    {
+                      width: windowWidth < 400 ? 100 : 110,
+                    },
+                  ]}
+                />
                 <View style={styles.tabRight}>
                   {rightTabItems.map((item) => (
                     <View style={styles.tabItem} key={item.key}>
@@ -670,6 +687,7 @@ export const NavigationView = (props: NavigationViewProps) => {
                 },
               ]}>
               <TouchableOpacity
+                activeOpacity={0.8}
                 style={styles.heartTouchable}
                 onPress={() => {
                   if (!modalOpen) {
@@ -678,7 +696,11 @@ export const NavigationView = (props: NavigationViewProps) => {
                     navigation.navigate(tabKey);
                   }
                 }}>
-                <View style={styles.heartIcon} />
+                {navigationConfig.tabButtonComponent ? (
+                  navigationConfig.tabButtonComponent?.()
+                ) : (
+                  <View style={styles.heartIcon} />
+                )}
               </TouchableOpacity>
             </Animated.View>
           </View>
@@ -723,8 +745,9 @@ const styles = StyleSheet.create({
     marginLeft: -40,
     borderRadius: 40,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'lightgrey',
+    shadowColor: '#000',
+    shadowRadius: 10,
+    shadowOpacity: 0.1,
   },
   heartTouchable: {
     height: '100%',
@@ -777,7 +800,7 @@ const styles = StyleSheet.create({
   tabLeft: {
     flex: 1,
     flexDirection: 'row',
-    paddingHorizontal: 8,
+    paddingLeft: 4,
   },
   tabCenter: {
     width: 100,
@@ -785,7 +808,7 @@ const styles = StyleSheet.create({
   tabRight: {
     flex: 1,
     flexDirection: 'row',
-    paddingHorizontal: 12,
+    paddingRight: 4,
   },
   tabItem: {
     flex: 1,

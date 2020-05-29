@@ -9,7 +9,6 @@ import {
 
 import {NavigationView, TabIconProps} from './NavigationView';
 import {Router} from './Router';
-import {StackNavigationOptions} from 'react-navigation-stack/lib/typescript/src/vendor/types';
 
 // Generate keys for unamed based routes for tab and modal
 let uniqueBaseId: string = `id-${Date.now()}`;
@@ -22,27 +21,26 @@ function generateKey(): string {
 interface TabModalNavigator {
   tabRoutes: {
     [routeName: string]: {
-      screen: NavigationComponent<
-        StackNavigationOptions,
-        NavigationScreenProp<NavigationRoute>
-      >;
+      screen: NavigationComponent<any, NavigationScreenProp<NavigationRoute>>;
       tabIcon: ({}: TabIconProps) => React.ReactElement;
       tabLabel: string;
     };
   };
   tabKey?: string;
   modalComponent: NavigationComponent<
-    StackNavigationOptions,
+    any,
     NavigationScreenProp<NavigationRoute>
   >;
   modalKey?: string;
+  tabButtonComponent?: () => React.ReactElement;
 }
 
-function createHeartTabNavigator({
+export function createModalTabNavigator({
   tabRoutes,
   modalComponent,
   modalKey = generateKey(),
   tabKey = generateKey(),
+  tabButtonComponent,
 }: TabModalNavigator) {
   const routeConfigMap = {
     [tabKey]: createSwitchNavigator(tabRoutes),
@@ -53,6 +51,7 @@ function createHeartTabNavigator({
     tabItems: tabRoutes,
     modalKey,
     tabKey,
+    tabButtonComponent,
   };
 
   const router = Router(routeConfigMap, config);
@@ -63,5 +62,3 @@ function createHeartTabNavigator({
     config,
   );
 }
-
-export default createHeartTabNavigator;

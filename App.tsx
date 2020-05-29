@@ -12,41 +12,46 @@ import React from 'react';
 import {StatusBar, View, Text, StyleSheet} from 'react-native';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
-import createModalTabNavigator from './heart-tab-navigator/createHeartTabNavigator';
+import {createModalTabNavigator} from './modal-tab-navigator';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {style} from 'd3';
 
 const ModalTabNavigator = createModalTabNavigator({
-  modalComponent: createStackNavigator({
-    '/modal/1': ({navigation}: any) => (
-      <View style={styles.screen}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('/modal/2')}>
-          <Text>Go to next</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('/purchase')}>
-          <Text>Open purchase flow</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-    '/modal/2': ({navigation}: any) => (
-      <View style={styles.screen}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.goBack()}>
-          <Text>Go back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('/tab/2')}>
-          <Text>Go to tab 2</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-  }),
+  modalComponent: createStackNavigator(
+    {
+      '/modal/1': ({navigation}: any) => (
+        <View style={styles.screen}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('/modal/2')}>
+            <Text>Go to next</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('/purchase')}>
+            <Text>Open purchase flow</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+      '/modal/2': ({navigation}: any) => (
+        <View style={styles.screen}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.goBack()}>
+            <Text>Go back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('/tab/2')}>
+            <Text>Go to mine kuponer</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    },
+    {
+      headerMode: 'none',
+    },
+  ),
   tabRoutes: {
     '/tab/1': {
       screen: () => (
@@ -97,6 +102,11 @@ const ModalTabNavigator = createModalTabNavigator({
       tabLabel: 'Scan Kupon',
     },
   },
+  // tabButtonComponent: () => (
+  //   <View style={styles.customButton}>
+  //     <Text>Heart</Text>
+  //   </View>
+  // ),
   modalKey: '/modal',
   tabKey: '/tab',
 });
@@ -107,11 +117,10 @@ const StackNavigator = createStackNavigator(
     '/purchase': createStackNavigator({
       '/purchase/step-1': ({navigation}) => (
         <View style={styles.screen}>
-          <Text>Purchase</Text>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate('/tab/3')}>
-            <Text>Tilbage til vindertal</Text>
+            onPress={() => navigation.navigate('/tab')}>
+            <Text>Tilbage til tab</Text>
           </TouchableOpacity>
         </View>
       ),
@@ -139,6 +148,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFF',
   },
   tabScreen: {
     flex: 1,
@@ -164,6 +174,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#ECECEC',
     borderWidth: 2,
+  },
+  customButton: {
+    backgroundColor: 'white',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
