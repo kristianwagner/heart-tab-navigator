@@ -1,39 +1,66 @@
 import * as React from 'react';
 import {
-  StackRouter,
   createNavigator,
-  NavigationRouteConfigMap,
-  NavigationStackRouterConfig,
-  CreateNavigatorConfig,
+  createSwitchNavigator,
+  NavigationComponent,
+  NavigationScreenProp,
+  NavigationRoute,
 } from 'react-navigation';
-import {
-  StackNavigationConfig,
-  StackNavigationOptions,
-  StackNavigationProp,
-} from 'react-navigation-stack/src//vendor/types';
-// import {StackView} from 'react-navigation-stack';
-import {NavigationView} from './NavigationView';
 
-function createHeartTabNavigator(
-  routeConfigMap: NavigationRouteConfigMap<
+import {NavigationView, TabIconProps} from './NavigationView';
+import {Router} from './Router';
+import {StackNavigationOptions} from 'react-navigation-stack/lib/typescript/src/vendor/types';
+
+// Generate keys for unamed based routes for tab and modal
+let uniqueBaseId: string = `id-${Date.now()}`;
+let uuidCount: number = 0;
+
+function generateKey(): string {
+  return `${uniqueBaseId}-${uuidCount++}`;
+}
+
+interface TabModalNavigator {
+  tabRoutes: {
+    [routeName: string]: {
+      screen: NavigationComponent<
+        StackNavigationOptions,
+        NavigationScreenProp<NavigationRoute>
+      >;
+      tabIcon: ({}: TabIconProps) => React.ReactElement;
+      tabLabel: string;
+    };
+  };
+  tabKey?: string;
+  modalComponent: NavigationComponent<
     StackNavigationOptions,
-    StackNavigationProp
-  >,
-  stackConfig: CreateNavigatorConfig<
-    StackNavigationConfig,
-    NavigationStackRouterConfig,
-    StackNavigationOptions,
-    StackNavigationProp
-  > = {},
-) {
-  const router = StackRouter(routeConfigMap, stackConfig);
+    NavigationScreenProp<NavigationRoute>
+  >;
+  modalKey?: string;
+}
+
+function createHeartTabNavigator({
+  tabRoutes,
+  modalComponent,
+  modalKey = generateKey(),
+  tabKey = generateKey(),
+}: TabModalNavigator) {
+  const routeConfigMap = {
+    [tabKey]: createSwitchNavigator(tabRoutes),
+    [modalKey]: modalComponent,
+  };
+
+  const config = {
+    tabItems: tabRoutes,
+    modalKey,
+    tabKey,
+  };
+
+  const router = Router(routeConfigMap, config);
 
   return createNavigator(
-    // TODO: don't have time to fix it right now
-    // @ts-ignore
     (navigatorProps) => <NavigationView {...navigatorProps} />,
     router,
-    stackConfig,
+    config,
   );
 }
 

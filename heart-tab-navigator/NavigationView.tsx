@@ -1,30 +1,137 @@
-import React, {useState} from 'react';
-import {StyleSheet, View, Animated, Dimensions, Text} from 'react-native';
-import {SceneView} from 'react-navigation';
+import React, {useState, ReactElement, FunctionComponent} from 'react';
+import {
+  StyleSheet,
+  View,
+  Animated,
+  Dimensions,
+  Text,
+  StatusBar,
+  Platform,
+} from 'react-native';
+import {
+  SceneView,
+  NavigationDescriptor,
+  NavigationInjectedProps,
+} from 'react-navigation';
+import StaticSafeAreaInsets from 'react-native-static-safe-area-insets';
 
 import * as d3 from 'd3';
 
-import {Svg, Path, Circle} from 'react-native-svg';
+import {Svg, Path} from 'react-native-svg';
 import {
   TouchableOpacity,
   PanGestureHandler,
   State,
+  PanGestureHandlerStateChangeEvent,
+  PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
-
 const window = Dimensions.get('window');
 const windowWidth = window.width;
+const windowHeight = window.height;
 
-export const NavigationView = (props) => {
-  const {navigation, descriptors, screenProps} = props;
+export interface TabIconProps {
+  isSelected: boolean;
+}
+
+type TabIcon = ({}: TabIconProps) => ReactElement;
+
+type NavigationViewProps = {
+  descriptors: {[key: string]: NavigationDescriptor};
+  navigationConfig: {
+    tabItems: {
+      [key: string]: {
+        screen: any;
+        tabIcon: TabIcon;
+        tabLabel: any;
+      };
+    };
+    tabKey: string;
+    modalKey: string;
+  };
+  screenProps?: unknown;
+} & NavigationInjectedProps;
+
+interface TabItem {
+  isSelected: boolean;
+  key: string;
+  routeName: string;
+  icon: TabIcon;
+  label: string;
+}
+
+const defaultIcon: FunctionComponent<TabIconProps> = ({isSelected}) => {
+  const borderColor = isSelected ? '#3d05b5' : '#EFEFEF';
+  return (
+    <View
+      style={[
+        styles.tabItemIcon,
+        {
+          borderColor,
+        },
+      ]}
+    />
+  );
+};
+
+export const NavigationView = (props: NavigationViewProps) => {
+  const {navigation, descriptors, screenProps, navigationConfig} = props;
   const state = navigation?.state;
   const routes = state.routes;
+  const tabHeight = 80;
+  const circleRadius = 40;
+  const circleMargin = 12;
+  const circleOuterRadius = circleRadius + circleMargin;
+  const centerPoint = windowWidth / 2;
+  const tabItemConfig = navigationConfig.tabItems;
 
+  // Get base keys for tab and modal
+  const tabKey = navigationConfig.tabKey;
+  const modalKey = navigationConfig.modalKey;
+
+  // Calculate top inset
+  const iosTopInset =
+    StaticSafeAreaInsets.safeAreaInsetsTop === 0
+      ? 20
+      : StaticSafeAreaInsets.safeAreaInsetsTop;
+  const androidTopInset = StatusBar.currentHeight;
+  const topInset = (Platform.OS === 'ios' ? iosTopInset : androidTopInset) || 0;
+
+  // Calculate bottom inset
+  const safeAreaBottom = StaticSafeAreaInsets.safeAreaInsetsBottom;
+  const bottomInset = safeAreaBottom > 0 ? safeAreaBottom - 24 : 0;
+  const modalMarginTop = topInset + circleOuterRadius;
+
+  // Create tab items
+  const tabObject = routes.find((route) => route.key === tabKey);
+  const tabRoutes = tabObject?.routes ?? [];
+  const selectedTabIndex = tabObject?.index;
+  const tabItems: TabItem[] = tabRoutes.map((route, index) => {
+    const isSelected = index === selectedTabIndex;
+    const itemConfig = tabItemConfig[route.key];
+    const itemLabel = itemConfig?.tabLabel ?? route?.routeName ?? '';
+    return {
+      icon: itemConfig.tabIcon || defaultIcon,
+      label: itemLabel,
+      isSelected,
+      routeName: route.routeName,
+      key: route.key,
+    };
+  });
+
+  // Split tabs into left and right
+  const numberOfTabs = tabItems.length;
+  const leftTabItems = tabItems.slice(0, Math.ceil(numberOfTabs / 2));
+  const rightTabItems = tabItems.slice(
+    Math.ceil(numberOfTabs / 2),
+    numberOfTabs,
+  );
+
+  // Create svg morph drivers
   const [svgMorphDriver] = useState(new Animated.Value(0));
   const [modalDriver] = useState(new Animated.Value(0));
-
-  const modalOpen = routes.length === 2;
+  const modalOpen = state.index === 1;
 
   if (modalOpen) {
     Animated.spring(modalDriver, {
@@ -38,21 +145,13 @@ export const NavigationView = (props) => {
     }).start();
   }
 
-  const tabKey = routes[0]?.key;
   const tab = descriptors[tabKey] ?? {};
-
-  const modalKey = routes[1]?.key;
   const modal = descriptors[modalKey];
 
-  const circleRadius = 40;
-  const circleMargin = 12;
-  const circleTotal = circleRadius + circleMargin;
-  const centerPoint = windowWidth / 2;
-
-  const lineDataUnder = [
+  const lineDataPullDown = [
     {
       x: 0,
-      y: 80,
+      y: tabHeight,
     },
     {
       x: 0,
@@ -80,19 +179,19 @@ export const NavigationView = (props) => {
     },
     {
       x: centerPoint - 36,
-      y: circleTotal - 10 + 50,
+      y: circleOuterRadius - 10 + 50,
     },
     {
       x: centerPoint - 8,
-      y: circleTotal - 2 + 55,
+      y: circleOuterRadius - 2 + 55,
     },
     {
       x: centerPoint + 8,
-      y: circleTotal - 2 + 55,
+      y: circleOuterRadius - 2 + 55,
     },
     {
       x: centerPoint + 36,
-      y: circleTotal - 10 + 50,
+      y: circleOuterRadius - 10 + 50,
     },
     {
       x: centerPoint + 57,
@@ -103,7 +202,7 @@ export const NavigationView = (props) => {
       y: 0,
     },
     {
-      x: centerPoint + 80 + 5,
+      x: centerPoint + 80 + 1,
       y: 0,
     },
     {
@@ -120,14 +219,14 @@ export const NavigationView = (props) => {
     },
     {
       x: windowWidth,
-      y: 80,
+      y: tabHeight,
     },
   ];
 
-  const lineData = [
+  const lineDataStart = [
     {
       x: 0,
-      y: 80,
+      y: tabHeight,
     },
     {
       x: 0,
@@ -155,19 +254,19 @@ export const NavigationView = (props) => {
     },
     {
       x: centerPoint - 33,
-      y: circleTotal - 10,
+      y: circleOuterRadius - 10,
     },
     {
       x: centerPoint - 9,
-      y: circleTotal - 2,
+      y: circleOuterRadius - 2,
     },
     {
       x: centerPoint + 9,
-      y: circleTotal - 2,
+      y: circleOuterRadius - 2,
     },
     {
       x: centerPoint + 33,
-      y: circleTotal - 10,
+      y: circleOuterRadius - 10,
     },
     {
       x: centerPoint + 57,
@@ -195,14 +294,14 @@ export const NavigationView = (props) => {
     },
     {
       x: windowWidth,
-      y: 80,
+      y: tabHeight,
     },
   ];
 
-  const lineDataTop = [
+  const lineDataFlat = [
     {
       x: 0,
-      y: 80,
+      y: tabHeight,
     },
     {
       x: 0,
@@ -270,14 +369,14 @@ export const NavigationView = (props) => {
     },
     {
       x: windowWidth,
-      y: 80,
+      y: tabHeight,
     },
   ];
 
-  const lineDataInverted = [
+  const lineDataUp = [
     {
       x: 0,
-      y: 80,
+      y: tabHeight,
     },
     {
       x: 0,
@@ -305,19 +404,19 @@ export const NavigationView = (props) => {
     },
     {
       x: centerPoint - 24,
-      y: -(circleTotal - 10),
+      y: -(circleOuterRadius - 10),
     },
     {
       x: centerPoint - 10,
-      y: -(circleTotal - 1),
+      y: -(circleOuterRadius - 1),
     },
     {
       x: centerPoint + 10,
-      y: -(circleTotal - 1),
+      y: -(circleOuterRadius - 1),
     },
     {
       x: centerPoint + 24,
-      y: -(circleTotal - 10),
+      y: -(circleOuterRadius - 10),
     },
     {
       x: centerPoint + 87,
@@ -345,7 +444,7 @@ export const NavigationView = (props) => {
     },
     {
       x: windowWidth,
-      y: 80,
+      y: tabHeight,
     },
   ];
 
@@ -353,27 +452,42 @@ export const NavigationView = (props) => {
     .scaleLinear()
     .domain([0, windowWidth])
     .range([0, windowWidth]);
-  const scaleY = d3.scaleLinear().domain([0, 60]).range([0, 60]);
-  const lineConstructor = d3
-    .line()
-    .x((d) => scaleX(d.x))
-    .y((d) => scaleY(d.y))
-    .curve(d3.curveBasis);
+  const scaleY = d3.scaleLinear().domain([0, tabHeight]).range([0, tabHeight]);
 
-  const linePathUnder = lineConstructor(lineDataUnder);
-  const linePath = lineConstructor(lineData);
-  const linePathTop = lineConstructor(lineDataTop);
-  const linePathInverted = lineConstructor(lineDataInverted);
+  interface LinePoint {
+    x: number;
+    y: number;
+  }
+  const createLine = (data: LinePoint[]) => {
+    const lineConstructor = d3
+      .line<LinePoint>()
+      .x((d) => scaleX(d.x))
+      .y((d) => scaleY(d.y))
+      .curve(d3.curveBasis);
+    return lineConstructor(data) || '';
+  };
+
+  const linePathPullDown = createLine(lineDataPullDown);
+  const linePathStart = createLine(lineDataStart);
+  const linePathFlat = createLine(lineDataFlat);
+  const linePathPullUp = createLine(lineDataUp);
 
   const lineInterpolate = svgMorphDriver.interpolate({
     inputRange: [-0.3, 0, 0.25, 0.7],
-    outputRange: [linePathUnder, linePath, linePathTop, linePathInverted],
+    outputRange: [
+      linePathPullDown,
+      linePathStart,
+      linePathFlat,
+      linePathPullUp,
+    ],
   });
 
-  const handlePanGesture = (event) => {
+  const handlePanGesture = (
+    event: PanGestureHandlerStateChangeEvent | PanGestureHandlerGestureEvent,
+  ) => {
     const panState = event.nativeEvent.state;
     const translationY = event.nativeEvent.translationY;
-    const panPercent = -translationY / 800;
+    const panPercent = -translationY / windowHeight;
 
     // Gesture is active
     if (panState === State.ACTIVE) {
@@ -401,9 +515,9 @@ export const NavigationView = (props) => {
     // Gesture has ended
     if (panState === State.END || panState === State.CANCELLED) {
       if (panPercent > 0.3 && !modalOpen) {
-        navigation.navigate('/heart');
+        navigation.navigate(modalKey);
       } else {
-        navigation.navigate('/tab');
+        navigation.navigate(tabKey);
       }
 
       Animated.spring(svgMorphDriver, {
@@ -436,7 +550,7 @@ export const NavigationView = (props) => {
               {
                 translateY: modalDriver.interpolate({
                   inputRange: [0, 0.001, 1],
-                  outputRange: [1000, 0, 0],
+                  outputRange: [windowHeight, 0, 0],
                 }),
               },
             ],
@@ -445,7 +559,7 @@ export const NavigationView = (props) => {
         <TouchableOpacity
           style={styles.touchable}
           onPress={() => {
-            navigation.navigate('/tab');
+            navigation.navigate(tabKey);
           }}
         />
       </Animated.View>
@@ -453,16 +567,24 @@ export const NavigationView = (props) => {
         style={[
           styles.modalContainer,
           {
+            height: windowHeight - modalMarginTop,
             transform: [
               {
                 translateY: modalDriver.interpolate({
                   inputRange: [-1, 0, 1],
-                  outputRange: [1000, 800, 100],
+                  outputRange: [
+                    windowHeight,
+                    windowHeight - tabHeight - bottomInset,
+                    modalMarginTop,
+                  ],
                 }),
               },
             ],
           },
         ]}>
+        {/* Absolute View to hide overlay when modal overextends shen animating springs */}
+        <View style={styles.bottomUnderlay} />
+
         <PanGestureHandler
           onHandlerStateChange={handlePanGesture}
           onGestureEvent={handlePanGesture}>
@@ -478,16 +600,6 @@ export const NavigationView = (props) => {
                     fill="white"
                     strokeWidth="3"
                   />
-                  {/* {lineData.map((point) => {
-                    return (
-                      <Circle
-                        r={5}
-                        fill="red"
-                        cx={scaleX(point.x)}
-                        cy={scaleX(point.y)}
-                      />
-                    );
-                  })} */}
                 </Svg>
               </View>
 
@@ -502,33 +614,37 @@ export const NavigationView = (props) => {
                   },
                 ]}>
                 <View style={styles.tabLeft}>
-                  <View style={styles.tabItem}>
-                    <View style={styles.tabItemIcon} />
-                    <Text numberOfLines={1} style={styles.tabText}>
-                      Spil
-                    </Text>
-                  </View>
-                  <View style={styles.tabItem}>
-                    <View style={styles.tabItemIcon} />
-                    <Text numberOfLines={1} style={styles.tabText}>
-                      Mine kuponer
-                    </Text>
-                  </View>
+                  {leftTabItems.map((item) => (
+                    <View style={styles.tabItem} key={item.key}>
+                      <TouchableOpacity
+                        style={styles.tabItemTouchable}
+                        onPress={() => {
+                          navigation.navigate(item.key);
+                        }}>
+                        {item.icon({isSelected: item.isSelected})}
+                        <Text numberOfLines={1} style={styles.tabText}>
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
                 </View>
                 <View style={styles.tabCenter} />
                 <View style={styles.tabRight}>
-                  <View style={styles.tabItem}>
-                    <View style={styles.tabItemIcon} />
-                    <Text numberOfLines={1} style={styles.tabText}>
-                      Vindertal
-                    </Text>
-                  </View>
-                  <View style={styles.tabItem}>
-                    <View style={styles.tabItemIcon} />
-                    <Text numberOfLines={1} style={styles.tabText}>
-                      Scan Kupon
-                    </Text>
-                  </View>
+                  {rightTabItems.map((item) => (
+                    <View style={styles.tabItem} key={item.key}>
+                      <TouchableOpacity
+                        style={styles.tabItemTouchable}
+                        onPress={() => {
+                          navigation.navigate(item.key);
+                        }}>
+                        {item.icon({isSelected: item.isSelected})}
+                        <Text numberOfLines={1} style={styles.tabText}>
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
                 </View>
               </Animated.View>
             </View>
@@ -547,7 +663,7 @@ export const NavigationView = (props) => {
                     {
                       scale: svgMorphDriver.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [1, 1.5],
+                        outputRange: [1, 1.75],
                       }),
                     },
                   ],
@@ -557,9 +673,9 @@ export const NavigationView = (props) => {
                 style={styles.heartTouchable}
                 onPress={() => {
                   if (!modalOpen) {
-                    navigation.navigate('/heart');
+                    navigation.navigate(modalKey);
                   } else {
-                    navigation.navigate('/tab');
+                    navigation.navigate(tabKey);
                   }
                 }}>
                 <View style={styles.heartIcon} />
@@ -591,14 +707,8 @@ const styles = StyleSheet.create({
   modalContainer: {
     position: 'absolute',
     width: '100%',
-    height: '100%',
     flex: 1,
     top: 0,
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
-    // backgroundColor: '#FFF',
-    // borderWidth: 1,
-    // borderColor: 'lightgrey',
   },
   modalHeader: {
     height: 80,
@@ -624,8 +734,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalScreen: {
-    flex: 1,
     backgroundColor: '#FFF',
+    flex: 1,
   },
   overlay: {
     position: 'absolute',
@@ -679,18 +789,31 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: '100%',
   },
   tabItemIcon: {
     height: 32,
     width: 32,
     borderRadius: 6,
     backgroundColor: '#ECECEC',
+    borderWidth: 2,
   },
   tabText: {
     color: '#000',
     fontSize: 10,
     marginTop: 6,
+  },
+  tabItemTouchable: {
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  bottomUnderlay: {
+    position: 'absolute',
+    height: 100,
+    width: '100%',
+    backgroundColor: '#FFF',
+    bottom: -100,
   },
 });
