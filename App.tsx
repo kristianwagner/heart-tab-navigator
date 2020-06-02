@@ -9,12 +9,11 @@
  */
 
 import React from 'react';
-import {StatusBar, View, Text, StyleSheet} from 'react-native';
+import {StatusBar, View, Text, StyleSheet, Button} from 'react-native';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import {createModalTabNavigator} from './modal-tab-navigator';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import {style} from 'd3';
 
 const ModalTabNavigator = createModalTabNavigator({
   modalComponent: createStackNavigator(

@@ -514,7 +514,11 @@ export const NavigationView = (props: NavigationViewProps) => {
     }
 
     // Gesture has ended
-    if (panState === State.END || panState === State.CANCELLED) {
+    if (
+      panState === State.END ||
+      panState === State.CANCELLED ||
+      panState === State.FAILED
+    ) {
       if (panPercent > 0.3 && !modalOpen) {
         navigation.navigate(modalKey);
       } else {
@@ -597,7 +601,7 @@ export const NavigationView = (props: NavigationViewProps) => {
                 without being cut off when it goes negative
                 This is also why viewbox Y (second value) is set to the same as margin top to offset it
               */}
-              <View style={{marginTop: -tabHeight}}>
+              <View style={{marginTop: -tabHeight}} pointerEvents="none">
                 <Svg
                   height={180}
                   width={windowWidth}
